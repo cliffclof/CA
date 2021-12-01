@@ -1,6 +1,6 @@
 // RNA DNA Pairs
 // An exercise in array manipulation
-// v0.4.0
+// v0.4.1
 // cliffclof
 
 // Returns a random DNA base
@@ -59,8 +59,8 @@ function pAequorFactory(index, arr) {
       return [perc * 100, retString];
     },
     willLikelySurvive() {
-      const baseCompliments = x => x === 'C' || x === 'G';
-      return (this.rna.filter(baseCompliments).length / this.rna.length >= .6);
+      const baseComplements = x => x === 'C' || x === 'G';
+      return (this.rna.filter(baseComplements).length / this.rna.length >= .6);
     },
     complementStrand() {
       return this.rna.map(x => this.bases[x]);
