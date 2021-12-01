@@ -1,0 +1,163 @@
+// RNA DNA Pairs
+// An exercise in array manipulation
+// v0.4.0
+// cliffclof
+
+// Returns a random DNA base
+const returnRandBase = () => {
+  const dnaBases = ['A', 'T', 'C', 'G'];
+  return dnaBases[Math.floor(Math.random() * 4)];
+}
+
+// Returns a random single stand of DNA containing 15 bases
+const mockUpStrand = () => {
+  const newStrand = [];
+  for (let i = 0; i < 15; i++) {
+    newStrand.push(returnRandBase());
+  }
+  return newStrand;
+}
+
+// BETA - Requirements
+// no two organisms should have the same number
+// array of 15 DNA bases. 
+// return object’s dna after mutating 1 random base to different.
+// find a random position to mutate in base 15
+// /**
+//  * // Factory Function builds an pAequor
+//  * @param {number} // index a unique id for the specimen
+//  * @param {Array} arr // formatted 15 base rna strand in an array 
+//  * @returns // new specimen object with RNA base strand
+//  * @param {number} specimenNum // accepts the index input
+//  * @param {arr} rna // rna strand
+//  * @param {objet} bases // static associative array used to lookup values in mutate() and complementStrand()
+//  * @method mutate() // mutates single base to anything but itself
+//  * @returns {arr} // array of RNA bases
+//  * @method compareDNA() // compare this DNA to any other specimen of same object
+//  * @returns {Array[number, string]} // [0] percentage decimal and [1] string explaination of compare
+//  * @method willLikelySurvive() // tests if the specimin is above 60% C and G bases
+//  * @returns {boolean} // returns true if the object’s .dna array contains at least 60% 'C' or 'G' bases. Otherwise, .willLikelySurvive() returns false.
+//  * @method complementStrand() // creates a compliment rna G <-> C, A <-> T
+//  * @returns {arr} // generates RNA compliment to make DNA strand}
+//  */
+function pAequorFactory(index, arr) {
+  return {
+    specimenNum: index,
+    rna: arr,
+    bases: { 'A': 'T', 'T': 'A', 'C': 'G', 'G': 'C' },
+    mutate() {
+      const mutateBaseId = Math.floor(Math.random() * this.rna.length);
+      const randomSkip = Math.floor(Math.random() * (Object.keys(this.bases).length - 1));
+      const noSameBase = x => x !== this.rna[mutateBaseId];
+      this.rna[mutateBaseId] = Object.values(this.bases)
+        .filter(noSameBase)[randomSkip];
+      return this.rna;
+    },
+    compareDNA(spec) {
+      const perc = this.rna.reduce((a, b, i) => (b !== spec.rna[i]) ? a : a + 1, 0) / this.rna.length;
+      const retString = `specimen ${this.specimenNum} and specimen ${spec.specimenNum} have ${perc * 100}% DNA in common.`;
+      return [perc * 100, retString];
+    },
+    willLikelySurvive() {
+      const baseCompliments = x => x === 'C' || x === 'G';
+      return (this.rna.filter(baseCompliments).length / this.rna.length >= .6);
+    },
+    complementStrand() {
+      return this.rna.map(x => this.bases[x]);
+    }
+  }
+}
+
+// BETA - Requirements
+// With the factory function set up, your team requests that 
+// you create 30 instances of pAequor that can survive in their 
+// natural environment. Store these instances in an array for
+// your team to study later. 
+// /**
+//  * 
+//  * @param {number} buildCount 
+//  * @returns {arr} Array of 60%+ C and G 'survivable' specimen objects 
+//  */
+function buildMain(buildCount) {
+  const arr = [];
+  let input;
+  for (let i = 0; i < buildCount; i++) {
+    do {
+      input = pAequorFactory(i, mockUpStrand());
+    }
+    while (!input.willLikelySurvive());
+    arr.push(input);
+  }
+  return arr;
+}
+
+
+// index to test, array
+// check each proceding index and return the predicate functions greatest return value.
+// confirmed best solution based on post research.  Combinatorics.
+// More on the math: http://thefinalwager.com/2015/12/09/combinatorics-factorial-permutations/
+// seems like the most efficient compare all in array
+// uses the index to adjust for each iteration
+// avoids checking previously compared
+// this is better than recursion and has many benefits
+// //**
+//  * 
+//  * @param {number} i // index to start test
+//  * @param {array} arr // the complete specimens array
+//  * @returns {arr} // a built up array from running for loop
+//  */
+const mostSimilar = (i, arr) => {
+  let r = [0, 0];
+  for (j = i + 1; j < arr.length; j++) {
+    if (arr[i].compareDNA(arr[j])[0] > r[0]) r = arr[i].compareDNA(arr[j]);
+  }
+  return r;
+}
+// //**
+//  * 
+//  * @param {array} arr //Full specimens array
+//  * @returns // With sort: array of most similar rna for each specimen (add .shift() if single first value is all that is needed)
+//  * @returns // Without sort: same unordered in order of testing.
+//  */
+const mostRelated = (arr) => {
+  return arr.map((x, i, a) => mostSimilar(i, a)).sort((x, y) => y[0] - x[0]);
+}
+
+// //**
+//  * 
+//  * @param {arr} arr // Specimens array
+//  * @param {function} callback // used to call forEach for console.log()  IMPROVEMENT OPPORTUNITY HERE
+//  */
+const actAll = (arr, callback) => {
+  arr.forEach(callback);
+}
+
+/*
+// bad use of resources
+// recursive method. less efficient due to complex control flow.  // 
+mostSimilarV2 = (arr) => {
+  let test = arr.shift();
+  return (arr.length === 1) ? 
+  [] : 
+  [(arr.reduce((a,b) => (test.compareDNA(b)[0] > a[0]) ? b : a), test.compareDNA(arr[0])), ...(mostSimilarV2(arr))];
+}
+console.log('v2', (mostSimilarV2([...specimens]))
+);
+*/
+
+
+
+// Build the 30 specimens requested
+specimens = buildMain(30);
+
+// the forEach for console.log()  IMPROVEMENT OPPORTUNITY HERE
+actAll(specimens, x => {
+  console.log('survive?', x.willLikelySurvive());
+  console.log('mutate', x.mutate());
+  console.log('complement', x.complementStrand());
+  console.log('survive after mutate?', x.willLikelySurvive());
+
+});
+
+// shift to get the first largest similar from sorted array
+console.log('largest common', mostRelated(specimens).shift());
